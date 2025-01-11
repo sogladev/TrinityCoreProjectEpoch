@@ -762,6 +762,62 @@ struct PositionUpdateInfo
     bool Turned = false;
 };
 
+// BuildValuesCachePosPointers marks of the position of some data inside of BuildValue cache.
+struct BuildValuesCachePosPointers
+{
+    BuildValuesCachePosPointers() :
+        UnitNPCFlagsPos(-1), UnitFieldAuraStatePos(-1), UnitFieldFlagsPos(-1), UnitFieldDisplayPos(-1),
+        UnitDynamicFlagsPos(-1), UnitFieldBytes2Pos(-1), UnitFieldFactionTemplatePos(-1) {}
+
+    void ApplyOffset(uint32 offset)
+    {
+        if (UnitNPCFlagsPos >= 0)
+            UnitNPCFlagsPos += offset;
+
+        if (UnitFieldAuraStatePos >= 0)
+            UnitFieldAuraStatePos += offset;
+
+        if (UnitFieldFlagsPos >= 0)
+            UnitFieldFlagsPos += offset;
+
+        if (UnitFieldDisplayPos >= 0)
+            UnitFieldDisplayPos += offset;
+
+        if (UnitDynamicFlagsPos >= 0)
+            UnitDynamicFlagsPos += offset;
+
+        if (UnitFieldBytes2Pos >= 0)
+            UnitFieldBytes2Pos += offset;
+
+        if (UnitFieldFactionTemplatePos >= 0)
+            UnitFieldFactionTemplatePos += offset;
+
+        for (auto it = other.begin(); it != other.end(); ++it)
+            it->second += offset;
+    }
+
+    int32 UnitNPCFlagsPos;
+    int32 UnitFieldAuraStatePos;
+    int32 UnitFieldFlagsPos;
+    int32 UnitFieldDisplayPos;
+    int32 UnitDynamicFlagsPos;
+    int32 UnitFieldBytes2Pos;
+    int32 UnitFieldFactionTemplatePos;
+
+    std::unordered_map<uint16 /*index*/, uint32 /*pos*/> other;
+};
+
+// BuildValuesCachedBuffer cache for calculated BuildValue.
+struct BuildValuesCachedBuffer
+{
+    BuildValuesCachedBuffer(uint32 bufferSize) :
+        buffer(bufferSize), posPointers() {}
+
+    ByteBuffer buffer;
+
+    BuildValuesCachePosPointers posPointers;
+};
+
 // delay time next attack to prevent client attack animation problems
 #define ATTACK_DISPLAY_DELAY 200
 #define MAX_PLAYER_STEALTH_DETECT_RANGE 30.0f               // max distance for detection targets by player
@@ -1858,7 +1914,7 @@ class TC_GAME_API Unit : public WorldObject
     protected:
         explicit Unit (bool isWorldObject);
 
-        void BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, Player const* target) const override;
+        void BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* target) override;
 
         void _UpdateSpells(uint32 time);
         void _DeleteRemovedAuras();
@@ -1954,6 +2010,9 @@ class TC_GAME_API Unit : public WorldObject
 
         void ProcSkillsAndReactives(bool isVictim, Unit* procTarget, uint32 typeMask, uint32 hitMask, WeaponAttackType attType);
 
+        void PatchValuesUpdate(ByteBuffer& valuesUpdateBuf, BuildValuesCachePosPointers& posPointers, Player* target);
+        void InvalidateValuesUpdateCache() { _valuesUpdateCache.clear(); }
+
     protected:
         void SetFeared(bool apply);
         void SetConfused(bool apply);
@@ -2013,6 +2072,9 @@ class TC_GAME_API Unit : public WorldObject
         std::deque<PlayerMovementPendingChange> m_pendingMovementChanges;
 
         /* Player Movement fields END*/
+
+        typedef std::unordered_map<uint64 /*visibleFlag(uint32) + updateType(uint8)*/, BuildValuesCachedBuffer>  ValuesUpdateCache;
+        ValuesUpdateCache _valuesUpdateCache;
 };
 
 namespace Trinity
