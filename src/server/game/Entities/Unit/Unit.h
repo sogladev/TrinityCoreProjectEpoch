@@ -792,8 +792,10 @@ struct BuildValuesCachePosPointers
         if (UnitFieldFactionTemplatePos >= 0)
             UnitFieldFactionTemplatePos += offset;
 
-        for (auto it = other.begin(); it != other.end(); ++it)
+        // @epoch-start
+        for (auto it = itemDisplayIds.begin(); it != itemDisplayIds.end(); ++it)
             it->second += offset;
+        // @epoch-end
     }
 
     int32 UnitNPCFlagsPos;
@@ -803,8 +805,9 @@ struct BuildValuesCachePosPointers
     int32 UnitDynamicFlagsPos;
     int32 UnitFieldBytes2Pos;
     int32 UnitFieldFactionTemplatePos;
-
-    std::unordered_map<uint16 /*index*/, uint32 /*pos*/> other;
+    // @epoch-start
+    std::unordered_map<uint16 /*index*/, uint32 /*pos*/> itemDisplayIds;
+    // @epoch-end
 };
 
 // BuildValuesCachedBuffer cache for calculated BuildValue.

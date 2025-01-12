@@ -14071,16 +14071,8 @@ void Unit::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* target)
             // @epoch-start
             if (plr && IsItemDisplayIndex(index))
             {
-                uint32 displayId = m_uint32Values[index];
-
-                if (!target->CanSeeTransmog())
-                {
-                    // Display original items in visible slots
-                    if (Item const* item = plr->GetItemByPos(INVENTORY_SLOT_BAG_0, ItemDisplayIndexToItemSlot(index)))
-                        displayId = item->GetEntry();
-                }
-
-                fieldBuffer << uint32(displayId);
+                cacheValue.posPointers.itemDisplayIds[index] = static_cast<uint32>(fieldBuffer.wpos());
+                fieldBuffer << uint32(0); // Fill in later.
             }
             else if (index == UNIT_NPC_FLAGS)
             // @epoch-end
@@ -14162,6 +14154,23 @@ void Unit::BuildValuesUpdate(uint8 updateType, ByteBuffer* data, Player* target)
 void Unit::PatchValuesUpdate(ByteBuffer& valuesUpdateBuf, BuildValuesCachePosPointers& posPointers, Player* target)
 {
     Creature const* creature = ToCreature();
+
+    // @epoch-start
+    if (Player* plr = GetCharmerOrOwnerPlayerOrPlayerItself())
+    {
+        for (auto& [index, posPointerItemDisplayId] : posPointers.itemDisplayIds)
+        {
+            uint32 displayId = m_uint32Values[index];
+            if (!target->CanSeeTransmog())
+            {
+                // Display original items in visible slots
+                if (Item const* item = plr->GetItemByPos(INVENTORY_SLOT_BAG_0, ItemDisplayIndexToItemSlot(index)))
+                    displayId = item->GetEntry();
+            }
+            valuesUpdateBuf.put(posPointerItemDisplayId, displayId);
+        }
+    }
+    // @epoch-end
 
     // UNIT_NPC_FLAGS
     if (creature && posPointers.UnitNPCFlagsPos >= 0)
