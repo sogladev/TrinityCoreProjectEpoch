@@ -14557,6 +14557,20 @@ GameObject* Unit::FindNearestGuardPost(float range) const
     return guardPost;
 }
 
+void Unit::SetUInt32Value(uint16 index, uint32 value)
+{
+    Object::SetUInt32Value(index, value);
+
+    switch (index)
+    {
+        // Invalidating the cache on health change should fix an issue where the client sees dead NPCs when they are not.
+        // We might also need to invalidate the cache for some other fields as well.
+        case UNIT_FIELD_HEALTH:
+            InvalidateValuesUpdateCache();
+            break;
+    }
+}
+
 std::string Unit::GetDebugInfo() const
 {
     std::stringstream sstr;
