@@ -266,6 +266,7 @@ export namespace TrinityCore {
                 +` -DCMAKE_CXX_COMPILER=/usr/bin/clang++`
                 +` -DBUILD_SHARED_LIBS="ON"`
                 +` -DBUILD_TESTING="OFF"`
+                +` -DCMAKE_INSTALL_LIBDIR=lib`
                 +` -DTRACY_ENABLED="${Args.hasFlag('tracy',[process.argv,args1])}"`
                 +` -DTRACY_TIMER_FALLBACK="${!Args.hasFlag('tracy-timer-fallback',[process.argv,args1])?'ON':'OFF'}"`
                 +` -DWITH_WARNINGS=1`
