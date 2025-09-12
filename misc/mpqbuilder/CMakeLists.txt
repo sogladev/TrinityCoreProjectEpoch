@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 project(mpqbuilder)
-set( Boost_USE_STATIC_LIBS ON )
+set( Boost_USE_STATIC_LIBS OFF )
 FIND_PACKAGE( Boost 1.60 COMPONENTS filesystem REQUIRED )
 add_executable(mpqbuilder mpqbuilder.cpp)
 add_executable(luaxmlreader luaxmlreader.cpp)
